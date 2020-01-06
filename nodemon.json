@@ -1,0 +1,6 @@
+{
+    "env": {
+        "MONGO_DB_PW": "admin123.com",
+        "JWT_PRIVATE_KEY": "secret@secret.secret/secret"
+    }
+}
