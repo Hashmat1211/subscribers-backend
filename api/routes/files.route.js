@@ -8,7 +8,7 @@ const checkAuth = require('../middleware/checkAuth');
 // const fileUpload = require('../middleware/fileUpload');
 console.log('before')
 const fileUpload = require('../middleware/fileUpload');
-console.log('after')
+console.log('after');
 
 // Creating a router object
 const router = express.Router();
@@ -25,7 +25,7 @@ const generateUserId = async (req, res, next) => {
 }
 
 
-router.get('/upload', generateUserId, fileUpload.single('subscriberIds'), validateAccessToken, fileController.uploadFile);
+router.post('/upload', generateUserId, fileUpload.single('subscriberIds'), validateAccessToken, fileController.uploadFile);
 router.patch('/update', generateUserId, fileUpload.single('subscriberIds'), validateAccessToken, fileController.updateFile);
 router.post('/refresh/:fileId', fileController.refreshFile);
 router.delete('/:fileId', fileController.deleteFileController);

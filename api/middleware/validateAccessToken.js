@@ -5,10 +5,13 @@ const SubscriberController = require('../controllers/subscribers.controller')
 const validateAccessToken = async (req, res, next) => {
     try {
         const accessToken = req.body.accessToken;
+        console.log(req)
+        console.log('accessToken ', accessToken)
         let filePath = req.fullFilePath;
+
         if (!accessToken) {
-            return res.status(401).json({
-                message: 'access token is not validc'
+            return res.status(403).json({
+                message: 'access token is not valid'
             })
         }
         if (filePath === undefined) {
@@ -48,6 +51,9 @@ const validateAccessToken = async (req, res, next) => {
         }
     } catch (error) {
         console.error(error);
+        res.status(200).json({
+            err: error
+        })
     }
 }
 

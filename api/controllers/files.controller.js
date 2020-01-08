@@ -50,6 +50,9 @@ const uploadFile = async (req, res, next) => {
         // res.send("Thank you for sending ids");
     } catch (error) {
         console.log("error ", error)
+        res.status(500).json({
+            error: error
+        })
     }
 }
 /* 
@@ -187,7 +190,7 @@ const getAllFiles = async (req, res, nex) => {
     try {
         const userId = req.params.userId;
         console.log(userId)
-        const allFiles = await File.find({ user: userId }).lean().exec();
+        const allFiles = await File.find({ user: userId }).exec();
         if (allFiles.length >= 1) {
             return res.status(200).json({
                 files: allFiles

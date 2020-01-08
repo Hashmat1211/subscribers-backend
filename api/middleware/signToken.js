@@ -16,7 +16,6 @@ const signToken = async user => {
         _id: user.uid,
         name: user.name
     }
-
     return JWT.sign(payload, JWT_SECRET,
         {
             expiresIn: "240h"

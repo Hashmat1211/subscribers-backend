@@ -4,7 +4,6 @@ const signToken = require('../middlewares/signToken');
 
 const login = async (req, res, next) => {
     try {
-
         /* 
         **************************************************************
         CHECK IF THE USER IS ALREADY IN THE DATABASE
