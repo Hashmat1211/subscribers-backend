@@ -48,6 +48,10 @@ app.use("/users", userRoutes);
 app.use("/subscribers", subscribersRouter);
 app.use("/files", fileRouter);
 
+app.get("/", (req, res) => {
+  res.send("ok");
+});
+
 /* HANDLING ERROR MIDDLEWARES */
 
 app.use((req, res, next) => {
