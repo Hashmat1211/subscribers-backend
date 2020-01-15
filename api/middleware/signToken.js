@@ -1,5 +1,5 @@
 const JWT = require('jsonwebtoken');
-const { JWT_SECRET } = require('../commons/config');
+const { JWT_SECRET } = require('../dependencies/config');
 
 /* 
     ASSIGNing JWT

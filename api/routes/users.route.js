@@ -3,9 +3,10 @@ const router = express();
 const checkAuth = require('../middleware/checkAuth')
 
 const UsersController = require('../controllers/users.controller');
-// if user has a valide jwt token, he's granted access
-router.post('/login', checkAuth, UsersController.login);
 
-router.get('/validate/token', checkAuth, UsersController.validateToken);
+/* 
+    -   IF USER HAS VALID JWT FROM MANYTOOLS' ACCOUNT, THEN ACCESS GRANT
+*/
+router.post('/login', checkAuth, UsersController.login);
 
 module.exports = router;

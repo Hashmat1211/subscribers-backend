@@ -1,38 +1,70 @@
-/*
-    Architecture of API
+/* IMPORTING MODULES */
 
-    // RESOURCES FOR THIS API
-    *   /products
-    *   /products/{id}
-    *   /orders
-    *   /orders/{id}
-    
-    // ROUTES
-    *   GET     ->  /products       ->  It will fetch all products
-    *   POST    ->  /products       ->  It will add a product
+const express = require("express");
+const app = express();
+const morgan = require("morgan");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const connetdb = require("./api/dependencies/connectdb");
+const cors = require("./api/dependencies/cors");
+const fs = require("fs");
 
-    *   GET     ->  /products/{id}  ->  It will fetch a specific product
-    *   PATCH   ->  /products/{id}  ->  It will modify/edit a product
-    *   DELETE  ->  /products/{id}  ->  It will delete a product
+/* CREATE PUBLIC DIRECTORY 'UPLOAD' DYNAMICALLY */
+fs.mkdirSync("./upload", { recursive: true });
+fs.mkdirSync("./csvFiles", { recursive: true });
+fs.mkdirSync("./jsonFiles", { recursive: true });
+/* ROUTES */
 
-    *   GET     ->  /orders         ->  It will fetch all orders
-    *   POST    ->  /orders         ->  It will add an order
+const subscribersRouter = require("./api/routes/subscribers.route");
+const fileRouter = require("./api/routes/files.route");
+const userRoutes = require("./api/routes/users.route");
 
-    *   GET     ->  /orders/{id}    ->  It will fetch a specific order
-    *   DELETE  ->  /orders/{id}    ->  It will delete(cancel) an order
-*/
+/* MONGODB CONNECTION */
 
-// importing modules
-const http = require('http');
-const app = require('./app');
+connetdb();
 
-// Setting port for the server
-const port = 3000;
+/* using mongoose promise */
 
-// creating server
-const server = http.createServer(app);
+mongoose.Promise = global.Promise;
 
-// Listening to request on above specified port
-server.listen(port,function(){
-    console.log("Node server is up and running..")
+/* MIDDLEWARES */
+
+app.use(morgan("dev"));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+/*  HANDLING CORS */
+
+app.use(cors);
+
+/* SERVING STATIC FILES */
+
+app.use("/upload", express.static("upload"));
+app.use("/csvFiles", express.static("csvFile"));
+app.use("/jsonFiles", express.static("jsonFiles"));
+
+/*  ROUTE */
+app.use("/users", userRoutes);
+app.use("/subscribers", subscribersRouter);
+app.use("/files", fileRouter);
+
+/* HANDLING ERROR MIDDLEWARES */
+
+app.use((req, res, next) => {
+  const err = new Error("Yakh Pakh");
+  err.status = 404;
+  next(err);
+});
+
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).json({
+    message: err.message
+  });
+});
+
+const port = 8000;
+
+/* lISTENING PORT */
+app.listen(port, function() {
+  console.log("Node server is up and running.. on ", port);
 });

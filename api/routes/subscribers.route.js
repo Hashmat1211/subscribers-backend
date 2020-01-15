@@ -1,30 +1,25 @@
-// importing dependencies
+/* 
+    -   IMPORTING MODULES
+*/
 const express = require('express');
+/* 
+    -   IMPORTING CONTROLLER
+*/
 const subscriberController = require('../controllers/subscribers.controller');
 
+/* 
+    -   CREATING ROUTER FUNCTION
+*/
 
-// Creating a router object
 const router = express.Router();
 
-// Get subscribers by manychat key
+/* 
+    -   SUBSCRIBERS ROUTES
+*/
+
 router.get('/export/json/:fileId', subscriberController.exportSubscribersToJSON);
 router.get('/export/csv/:fileId', subscriberController.exportSubscribersToCSV);
 router.get('/:fileId', subscriberController.getAllSubscribers);
-router.get('/single/:subscriberId', subscriberController.getSubscriberById)
-
-// router.post('/refresh', verifyUserToken, subscriberController.refreshSubscribersList);
-
-
-// // Creating route for POST request on keys root
-// router.post('/', verifyUserToken, fileUpload.single('subscriberIds'), subscriberController.addSubscriber);
-
-// // Creating route for GET request on product page
-// router.get('/:productId', productController.getProduct);
-
-// // Creating route for PATCH request on product page
-// router.patch('/:productId', verifyUserToken, productController.updateProduct);
-
-// // Creating route for DELETE request on product page
-// router.delete('/:productId', verifyUserToken, productController.deleteProduct);
+router.get('/single/:subscriberId', subscriberController.getSingleSubscriber)
 
 module.exports = router;

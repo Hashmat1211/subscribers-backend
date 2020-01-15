@@ -1,225 +1,172 @@
-const mongoose = require('mongoose');
-// importing Schemas
-const File = require('../models/file.model');
-//importing controllers
-const SubscribersController = require('./subscribers.controller');
+/* Contains helper functions of files */
+
+const filesHelper = require("../helpers/files.helpers");
 
 /* 
-           @ => UPLOAD FUNCTION GETS FILE PATH, NAME AND accessToken FROM '/UPLOAD' ENDPOINT
-           @ => GETS THE FILE SAVED INTO THE DATABASE AND IF ALREADY 
+           -  UPLOAD FUNCTION GETS FILE PATH, NAME AND accessToken FROM '/UPLOAD' ENDPOINT
+           -  CREATES A LOCAL DIRECTORY IN SERVER 
+           AND SAVE THE INCOMING FILE INTO 'UPLOAD' DIRECTORY BY USER ID 
+           AND IF ALREADY EXISTS DELETE IT FIRST AND THEN SAVE IT AGAIN
+           -  GETS THE FILE SAVED INTO THE DATABASE AND IF ALREADY 
                    EXISTED THEN IT DELETES IT FIRST AND THEN SAVE A NEW FILE
-           @ => IF FILE ALREADY EXISTS, THEN IT ALSO DELETES
+           -  IF FILE ALREADY EXISTS, THEN IT ALSO DELETES
                    ITS SUBSCRIBERS AND THEN SAVE FILE INTO THE DB
-           @ => GETS THE CSVPATH AND PARSE IT INTO THE ARRAY
-           @ => REQUESTS EACH SUBSCRIBERS DATA FROM MANYCHATAPI AGAINST PSID
-           @ => SAVES EACH SUBSCRIBERS DATA INTO THE DATABASE 
+           -  GETS THE CSVPATH AND PARSE IT INTO THE ARRAY
+           -  REQUESTS EACH SUBSCRIBERS DATA FROM MANYCHATAPI AGAINST PSID
+           -  SAVES EACH SUBSCRIBERS DATA INTO THE DATABASE 
 */
-
 const uploadFile = async (req, res, next) => {
-    try {
-        const csvFilePath = './upload/' + req.count + '/' + req.filename;
-        const accessToken = req.body.accessToken;
-        const fileName = req.body.fileName;
-        /* 
-           @ => ENSURE CSVFILEPATH IS NOT EMPTY
-        */
+  try {
+    /* PATH FROM ALREADY SAVED FILE IN DIRECTORY */
+    const csvFilePath = "./upload/" + req.count + "/" + req.filename;
+    const accessToken = req.body.accessToken;
+    const fileName = req.body.fileName;
 
-        if (!csvFilePath) {
-            return res.status(400).json({
-                error: "File is missing"
-            });
-        }
-
-        if (!fileName) {
-            return res.status(400).json({
-                error: "Name is missing"
-            });
-        }
-
-        /* 
-            @ => THIS FUNCTION CREATES A NEW FILE IN DB
-            @ => IF FILE ALREADY EXISTS, IT DELETES IT AND 
-                    THEN CREATE A NEW FILE AND SAVE IT INTO DB
-            @ => THIS FUNCTION PASSES FILE ID INTO THE CREATE NEW SUBSCRIBER FUNCTION
-        */
-        createFile(accessToken, fileName, csvFilePath, req.userId)
-
-        res.status(200).json({
-            result: "success"
-        })
-        // res.send("Thank you for sending ids");
-    } catch (error) {
-        console.log("error ", error)
+    /* ENSURE ACCESSTOKEN IS NOT EMPTY */
+    if (!accessToken) {
+      return res.status(400).json({
+        error: "access token is missing"
+      });
     }
-}
+
+    /* ENSURE CSVFILEPATH IS NOT EMPTY */
+
+    if (!csvFilePath) {
+      return res.status(400).json({
+        error: "File is missing"
+      });
+    }
+
+    /* ENSURE FILE NAME IS NOT EMPTY */
+    if (!fileName) {
+      return res.status(400).json({
+        error: "Name is missing"
+      });
+    }
+
+    /* 
+            - THIS FUNCTION (files' helper function) CREATES A NEW FILE IN DB
+            - IF FILE ALREADY EXISTS, IT DELETES IT AND 
+                    THEN CREATE A NEW FILE AND SAVE IT INTO DB
+            - THIS FUNCTION PASSES FILE ID INTO THE CREATE NEW SUBSCRIBER FUNCTION
+        */
+    await filesHelper.createFile(
+      accessToken,
+      fileName,
+      csvFilePath,
+      req.userId
+    );
+
+    return res.status(200).json({
+      result: "file is created"
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error
+    });
+  }
+};
 /* 
-    @ => UPDATE FILE FUNCTION UPDATES THE FILE FIELDS EITHER THE FILENAME / accessToken / FILEITSELF
-    @ => REQUESTS EACH SUBSCRIBERS DATA FROM MANYCHATAPI AGAINST PSID
-    @ => SAVES EACH SUBSCRIBERS DATA INTO THE DATABASE
+    - UPDATE FILE FUNCTION UPDATES THE FILE FIELDS EITHER THE FILE NAME / ACCESS TOKEN / FILE IT SELF
+    - REQUESTS EACH SUBSCRIBERS DATA FROM MANYCHATAPI AGAINST PSID
+    - SAVES EACH SUBSCRIBERS DATA INTO THE DATABASE
 */
 const updateFile = async (req, res, next) => {
-    try {
-        const accessToken = req.body.accessToken;
-        const fileName = req.body.fileName;
-        const userId = req.userId;
-        const fileId = req.body.fileId;
-        let fullFilePath = req.fullFilePath
-        console.log(fullFilePath);
+  try {
+    const userId = req.userId;
+    const fileId = req.body.fileId;
+    let fullFilePath = req.fullFilePath;
 
-        const updatedData = req.body;
-        if (!fullFilePath) {
-            File.findOneAndUpdate({ _id: fileId }, updatedData, { upsert: true, new: true }, function (err, doc) {
-                if (err) {
-                    console.log('err in file access key update', err)
-                }
-                console.log('doc ', doc);
-            })
-        } else {
-            updatedData.filePath = fullFilePath;
-            console.log("updated data ", updatedData)
-            File.findOneAndUpdate({ _id: fileId }, updatedData, { upsert: true, new: true }, function (err, doc) {
-                if (err) {
-                    console.log('err in file access key update', err)
-                }
-                console.log('doc when file existed ', doc);
-            })
-        }
-        /* 
-           @ => ENSURE CSVFILEPATH IS NOT EMPTY
+    const updatedData = req.body;
+    /* 
+            - IF FILE UPDATE IS NOT REQUIRED, UPDATES REQUIRED FIELDS ONLY
         */
-        /* 
-            @ => THIS FUNCTION CREATES A NEW FILE IN DB
-            @ => IF FILE ALREADY EXISTS, IT DELETES IT AND 
-                    THEN CREATE A NEW FILE AND SAVE IT INTO DB
-            @ => THIS FUNCTION PASSES FILE ID INTO THE CREATE NEW SUBSCRIBER FUNCTION
-        */
-
-        createFile(accessToken, fileName, fullFilePath, userId)
-
-        res.status(200).json({
-            result: "success"
-        })
-        // res.send("Thank you for sending ids");
-    } catch (error) {
-        console.log("error ", error)
-    }
-}
-
-const createFile = async (accessToken, fileName, csvFilePath, userId) => {
-    try {
-
-        const existingFile = await File.findOne({ accessToken: accessToken });
-
-        // console.log(existingFile)
-        if (!existingFile) {
-            console.log('file does not exist')
-        } else {
-            console.log('inside existing file check');
-            await deleteFile(existingFile._id)
-        }
-        const file = new File({
-            _id: mongoose.Types.ObjectId(),
-            fileName: fileName,
-            accessToken: accessToken,
-            filePath: csvFilePath,
-            user: userId
-        })
-        // console.log("accessToken", accessToken);
-        const newlyCreatedFile = await file.save();
-        SubscribersController.createSubscribers(file)
-        // console.log("newlycreated file ", newlyCreatedFile);
-
-    } catch (error) {
-        console.log("create file error ", error)
-    }
-}
-
-const getFileId = async (req, res, nex) => {
-    const accessToken = req.body.accessToken;
-
-    const existingFile = await File.findOne({ accessToken: accessToken });
-
-    // console.log(existingFile)
-    if (!existingFile) {
-        console.log('file does not exist')
+    if (!fullFilePath) {
+      await filesHelper.findAndUpdateFile(fileId, updatedData);
     } else {
-        console.log('inside existing file check');
-        await SubscribersController.deleteFileSubscribers(existingFile._id);
-        await deleteFile(existingFile._id)
+      /* 
+            - IF FILE UPDATE IS NOT REQUIRED, UPDATES REQUIRED FIELDS ONLY
+            */
+      updatedData.filePath = fullFilePath;
+      await filesHelper.findAndUpdateFile(fileId, updatedData);
     }
-}
-/* 
-    helper function for deleting files
-*/
-const deleteFile = async (_id) => {
-    try {
-        await SubscribersController.deleteFileSubscribers(_id);
-        await File.deleteOne({ _id });
-        console.log('file deleted')
-    } catch (error) {
-        console.log('not removed ', error)
-    }
-}
-
-const refreshFile = async (req, res, nex) => {
-    const fileId = req.params.fileId;
-    const file = getFileById(fileId);
-    const { accessToken, fileName, csvFilePath, userId } = file;
-    createFile(accessToken, fileName, csvFilePath, userId)
-}
-const deleteFileController = async (req, res, nex) => {
-    try {
-        const fileId = req.params.fileId;
-        console.log('inside delete file controller ', fileId);
-        /* 
-            @ => this function deletes a file and its subscribers
+    /* 
+            - THIS FUNCTION CREATES A NEW FILE IN DB
+            - IF FILE ALREADY EXISTS, IT DELETES IT AND 
+                    THEN CREATE A NEW FILE AND SAVE IT INTO DB
+            - THIS FUNCTION PASSES FILE ID INTO THE CREATE NEW SUBSCRIBER FUNCTION
         */
-        await deleteFile(fileId)
-        return res.status(200).json({
-            message: 'file is delete along with its subscribers'
-        })
 
-    } catch (error) {
-        console.log('err in delete file controller ', error)
-    }
-}
+    filesHelper.createFile(accessToken, fileName, fullFilePath, userId);
+
+    return res.status(200).json({
+      result: "file is updated successfully"
+    });
+  } catch (error) {
+    return res.status(500).json({
+      err: "error"
+    });
+  }
+};
+/* 
+    - THIS FUNC TAKES THE FILE ID AND AND CALL CREATE FUNC
+*/
+const refreshFile = async (req, res, nex) => {
+  try {
+    const fileId = req.params.fileId;
+    const file = filesHelper.getFileById(fileId);
+    const { accessToken, fileName, csvFilePath, userId } = file;
+    await filesHelper.createFile(accessToken, fileName, csvFilePath, userId);
+  } catch (error) {
+    return res.status(500).json({
+      err: error
+    });
+  }
+};
+const deleteFileController = async (req, res, nex) => {
+  try {
+    const fileId = req.params.fileId;
+    console.log("inside delete file controller ", fileId);
+    /* 
+            @ => THIS FUNC DELETE FILE AND ITS SUBSCRIBERS
+        */
+    await filesHelper.deleteFile(fileId);
+    return res.status(200).json({
+      message: "file is delete along with its subscribers"
+    });
+  } catch (error) {
+    return res.status(500).json({
+      err: error
+    });
+  }
+};
+/* 
+    @ => THIS FUNC GET USER ID AND SEND ALL ITS FILES IN RESPONSE
+*/
 const getAllFiles = async (req, res, nex) => {
-    try {
-        const userId = req.params.userId;
-        console.log(userId)
-        const allFiles = await File.find({ user: userId }).lean().exec();
-        if (allFiles.length >= 1) {
-            return res.status(200).json({
-                files: allFiles
-            })
-        } else {
-            return res.status(403).json({
-                message: 'files not found for this user'
-            })
-        }
-    } catch (error) {
-        console.log('err', error)
+  try {
+    const userId = req.params.userId;
+    const allFiles = await filesHelper.getAllFilesByUserId(userId);
+    if (allFiles.length >= 1) {
+      return res.status(200).json({
+        allFiles
+      });
+    } else {
+      return res.status(403).json({
+        message: "files not found for this user"
+      });
     }
-}
-const getFileById = async (fileId) => {
-    try {
-        const file = await File.findOne({ _id: fileId }).lean().exec();
-        if (!file) {
-            console.log('file does not exist')
-        } else {
-            return file;
-        }
-    } catch (error) {
-        console.log(error)
-    }
-}
+  } catch (error) {
+    return res.status(500).json({
+      err: error
+    });
+  }
+};
 
 module.exports = {
-    uploadFile,
-    updateFile,
-    getFileId,
-    getFileById,
-    refreshFile,
-    deleteFileController,
-    getAllFiles,
-}
+  uploadFile,
+  updateFile,
+  refreshFile,
+  deleteFileController,
+  getAllFiles
+};
