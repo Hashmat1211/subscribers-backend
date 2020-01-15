@@ -65,6 +65,6 @@ app.use((err, req, res, next) => {
 const port = 8000;
 
 /* lISTENING PORT */
-app.listen(port, function() {
+app.listen(process.env.PORT || port, function() {
   console.log("Node server is up and running.. on ", port);
 });
