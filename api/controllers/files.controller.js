@@ -17,6 +17,7 @@ const filesHelper = require("../helpers/files.helpers");
 */
 const uploadFile = async (req, res, next) => {
   try {
+    console.log(JSON.stringify(req.body));
     /* PATH FROM ALREADY SAVED FILE IN DIRECTORY */
     const csvFilePath = "./upload/" + req.count + "/" + req.filename;
     const accessToken = req.body.accessToken;
@@ -61,9 +62,7 @@ const uploadFile = async (req, res, next) => {
       result: "file is created"
     });
   } catch (error) {
-    return res.status(500).json({
-      error: error
-    });
+    console.log("err ", error);
   }
 };
 /* 

@@ -58,7 +58,6 @@ const getSubscriberInfoFromManychat = async (accessToken, id) => {
       json: true /*  */
     };
     const doc = await rp(options);
-    console.log("doc ", doc);
     const result = await addCustomFieldsIntoMainDocument(doc.data);
     return result;
   } catch (error) {
@@ -230,8 +229,6 @@ const makeSegmentsForWorker = async (subscribersArray, accessToken, fileId) => {
     const numberOfWorkers = 4;
     const segmentSize = Math.ceil(subscribersArray.length / numberOfWorkers);
     const segments = [];
-
-    console.log(subscribersArray.length, numberOfWorkers, segmentSize);
 
     for (let segmentIndex = 0; segmentIndex < numberOfWorkers; segmentIndex++) {
       const start = segmentIndex * segmentSize;
