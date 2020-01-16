@@ -14,6 +14,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     /* IF FILE ALREADY EXISTS, DELETE THE PREVIOUS FILE */
     try {
+      console.log("file name ", file.originalname);
       const fullFilePath = `./upload/${count}/${count}-${file.originalname}`;
       /* IF FILE EXISTS, THEN DELETE THE FILE AND PASTE A NEW FILE THERE */
 
