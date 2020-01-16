@@ -24,7 +24,7 @@ const createSubscribers = async file => {
     // console.log(accessToken, "accessToken")
     const subscriberIds = await makeCSVintoArray(filePath);
     /* if length greater than 1000, then make segments for worker threads */
-    if (subscriberIds.length > 1) {
+    if (subscriberIds.length > 1000) {
       console.log("if");
       /* SEND FILE ID ALONG WITH TO SAVE SUBSCRIBERS INTO DB */
       await makeSegmentsForWorker(subscriberIds, accessToken, _id);
