@@ -16,7 +16,6 @@ const router = express.Router();
 
 const generateUserId = async (req, res, next) => {
   try {
-    console.log("\n req.body", req.body);
     req.userId = "5df8a5eda13a33484c1758e5";
     next();
   } catch (error) {

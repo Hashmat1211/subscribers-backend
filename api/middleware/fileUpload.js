@@ -34,7 +34,7 @@ const storage = multer.diskStorage({
 
       cb(null, fileName, fullFilePath);
     } catch (error) {
-      console.log("error", error);
+      console.log("error in file upload", error);
     }
   }
 });

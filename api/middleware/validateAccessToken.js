@@ -47,7 +47,7 @@ const validateAccessToken = async (req, res, next) => {
       }
     }
   } catch (error) {
-    console.error(error);
+    console.error("error in validate  accessToken", error);
   }
 };
 
