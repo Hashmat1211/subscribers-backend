@@ -18,8 +18,8 @@ const validateAccessToken = async (req, res, next) => {
       console.log("file ;", file);
       console.log("new path ", file.filePath);
       if (!file) {
-        return res.status(403).json({
-          message: "file does not exist"
+        return res.status(400).json({
+          message: "file does not exist for this access token"
         });
       } else {
         console.log("file path old", file.filePath);
@@ -35,8 +35,8 @@ const validateAccessToken = async (req, res, next) => {
     console.log("iddddddddddd ", singleSubscriberId[1]);
 
     if (singleSubscriberId[1].length <= 0) {
-      res.status(403).json({
-        result: "subscriber id is not found"
+      res.status(400).json({
+        result: "subscriber id is not valid"
       });
     } else {
       const subscriberData = await SubscriberHelpers.getSubscriberInfoFromManychat(
@@ -44,7 +44,7 @@ const validateAccessToken = async (req, res, next) => {
         singleSubscriberId[1]
       );
       if (!subscriberData) {
-        res.status(403).json({
+        res.status(204).json({
           result: "subscriber data is not found by manychat api"
         });
       } else {

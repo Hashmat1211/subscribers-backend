@@ -1,6 +1,7 @@
 /* Contains helper functions of files */
 
 const filesHelper = require("../helpers/files.helpers");
+const File = require("../models/file.model");
 
 /* 
            -  UPLOAD FUNCTION GETS FILE PATH, NAME AND accessToken FROM '/UPLOAD' ENDPOINT
@@ -72,8 +73,7 @@ const uploadFile = async (req, res, next) => {
 */
 const updateFile = async (req, res, next) => {
   try {
-    const userId = req.userId;
-    const fileId = req.body.fileId;
+    const fileId = req.params.fileId;
     let fullFilePath = req.fullFilePath;
 
     const updatedData = req.body;
@@ -96,12 +96,13 @@ const updateFile = async (req, res, next) => {
             - THIS FUNCTION PASSES FILE ID INTO THE CREATE NEW SUBSCRIBER FUNCTION
         */
 
-    filesHelper.createFile(accessToken, fileName, fullFilePath, userId);
+    // filesHelper.createFile(accessToken, fileName, fullFilePath, userId);
 
     return res.status(200).json({
       result: "file is updated successfully"
     });
   } catch (error) {
+    console.log("err in udating file ", error);
     return res.status(500).json({
       err: "error"
     });
@@ -148,9 +149,53 @@ const getAllFiles = async (req, res, nex) => {
   }
 };
 
+const getSingleFile = async (req, res, next) => {
+  try {
+    const fileId = req.params.fileId;
+    const file = await filesHelper.getFileById(fileId);
+    if (!file) {
+      res.status(204).json({
+        message: "file does not found"
+      });
+    } else {
+      res.status(200).json({
+        file
+      });
+    }
+  } catch (error) {
+    console.log("err in getting ");
+  }
+};
+
+const checkFileName = async (req, res, next) => {
+  try {
+    const fileName = req.body.fileName;
+    console.log(" file ", typeof fileName);
+    const existingFile = await File.findOne({ fileName })
+      .lean()
+      .exec();
+    console.log("existing file ", existingFile);
+    if (existingFile) {
+      res.status(409).json({
+        error: "file name already exist"
+      });
+    } else {
+      res.status(200).json({ message: "file name is available" });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: error,
+      message: "error"
+    });
+    console.log("err in checkFile name ", error);
+  }
+};
+
 module.exports = {
   uploadFile,
   updateFile,
   deleteFileController,
-  getAllFiles
+  getAllFiles,
+  getSingleFile,
+  checkFileName
 };

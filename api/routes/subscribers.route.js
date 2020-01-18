@@ -1,17 +1,13 @@
-/* 
-    -   IMPORTING MODULES
-*/
+/*  IMPORTING MODULES */
 const express = require("express");
-/* 
-    -   IMPORTING CONTROLLER
-*/
+/* IMPORTING OAUTH VALIDATION MIDDLEWARE */
+const checkAuth = require("../middleware/checkAuth");
+/* IMPORTING CONTROLLER */
 const subscriberController = require("../controllers/subscribers.controller");
 
-/* 
-    -   CREATING ROUTER FUNCTION
-*/
-
+/* CREATING ROUTER FUNCTION */
 const router = express.Router();
+
 const generateUserId = async (req, res, next) => {
   try {
     req.userId = "5df8a5eda13a33484c1758e5";
@@ -21,9 +17,7 @@ const generateUserId = async (req, res, next) => {
     console.log("generate userId ", error);
   }
 };
-/* 
-    -   SUBSCRIBERS ROUTES
-*/
+/* SUBSCRIBERS ROUTES */
 
 router.get(
   "/export/json/:fileId",

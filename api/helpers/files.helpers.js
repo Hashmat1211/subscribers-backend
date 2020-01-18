@@ -27,7 +27,7 @@ const getFileById = async fileId => {
       return file;
     }
   } catch (error) {
-    throw Error(error);
+    console.log("err in get File by id helper func ", error);
   }
 };
 
@@ -69,7 +69,8 @@ const createFile = async (accessToken, fileName, csvFilePath, userId) => {
     const newlyCreatedFile = await file.save();
     await SubscribersHelper.createSubscribers(newlyCreatedFile);
   } catch (error) {
-    throw Error(error);
+    console.log("error in find and update ", error);
+    throw Error();
   }
 };
 /* 
@@ -83,12 +84,14 @@ const findAndUpdateFile = async (fileId, updatedData) => {
       { upsert: true, new: true },
       function(err, doc) {
         if (err) {
+          console.log("error in find and update ", error);
           throw Error(err);
         }
       }
     );
   } catch (error) {
-    throw Error(error);
+    console.log("error in find and update File Catch ", error);
+    throw Error();
   }
 };
 /* 
@@ -100,7 +103,8 @@ const getAllFilesByUserId = async userId => {
       .lean()
       .exec();
   } catch (error) {
-    throw Error(error);
+    console.log("get All files by user Id ", error);
+    throw Error();
   }
 };
 
