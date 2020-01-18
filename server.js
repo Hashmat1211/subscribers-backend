@@ -52,7 +52,7 @@ app.use((req, res, next) => {
 /* SERVING STATIC FILES */
 
 app.use("/upload", express.static("upload"));
-app.use("/csvFiles", express.static("csvFile"));
+app.use("/csvFiles", express.static("csvFiles"));
 app.use("/jsonFiles", express.static("jsonFiles"));
 
 /*  ROUTE */
@@ -73,6 +73,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
+  console.log("errorrrrrrr in server server.js ", err);
   res.status(err.status || 500).json({
     message: err.message
   });

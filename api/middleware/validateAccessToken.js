@@ -10,9 +10,12 @@ const validateAccessToken = async (req, res, next) => {
     if (!accessToken) {
       next();
     }
+    /* FILE IS EMPTY */
     if (filePath === undefined) {
-      console.log("acc ", accessToken);
+      console.log("acc token", accessToken);
+      /* FIND THE FILE FROM ACCESSTOKEN */
       let file = await File.findOne({ accessToken });
+      console.log("file ;", file);
       console.log("new path ", file.filePath);
       if (!file) {
         return res.status(403).json({
@@ -22,14 +25,17 @@ const validateAccessToken = async (req, res, next) => {
         console.log("file path old", file.filePath);
         filePath = file.filePath;
       }
+      console.log("\n should not execute this \n");
     }
     // const path = `./upload/4/4-test.csv`
     console.log(filePath);
     const fileContent = fs.readFileSync(filePath, { encoding: "utf8" });
     const singleSubscriberId = fileContent.split("\n");
     console.log("file ", singleSubscriberId[1].length);
+    console.log("iddddddddddd ", singleSubscriberId[1]);
+
     if (singleSubscriberId[1].length <= 0) {
-      return res.status(403).json({
+      res.status(403).json({
         result: "subscriber id is not found"
       });
     } else {
@@ -38,7 +44,7 @@ const validateAccessToken = async (req, res, next) => {
         singleSubscriberId[1]
       );
       if (!subscriberData) {
-        return res.status(403).json({
+        res.status(403).json({
           result: "subscriber data is not found by manychat api"
         });
       } else {
@@ -47,7 +53,11 @@ const validateAccessToken = async (req, res, next) => {
       }
     }
   } catch (error) {
-    console.error("error in validate  accessToken", error);
+    console.log("access token ", req.body);
+    console.error("error in validate  accessToken \n", error);
+    res.status(400).json({
+      err: "token is not validated"
+    });
   }
 };
 

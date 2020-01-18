@@ -1,5 +1,6 @@
 // importing dependencies
 const fs = require("fs");
+const path = require("path");
 /* 
     @ => IMPORTING HELPER FUNCTIONS
 */
@@ -56,6 +57,7 @@ const exportSubscribersToJSON = async (req, res, next) => {
 const exportSubscribersToCSV = async (req, res, next) => {
   try {
     const fileId = req.params.fileId;
+    console.log("hi");
     const file = await filesHelper.getFileById(fileId);
     const userId = file.user;
 
@@ -64,22 +66,30 @@ const exportSubscribersToCSV = async (req, res, next) => {
     );
 
     /*  needs commenting */
-    const fileDirectory = `./csvFiles/ui-${userId}`;
-    const filePath = `${fileDirectory}/fi-${fileId}.csv`;
+
+    let fileDirectory = `./csvFiles/ui-${userId}`;
+    let filePath = `${fileDirectory}/fi-${fileId}.csv`;
 
     fs.mkdirSync(fileDirectory, { recursive: true });
 
     if (fs.existsSync(filePath)) {
-      res.download(filePath);
+      /* first '..' goes to api n second '...' goes to main application n then  */
+
+      filePath = filePath.split(".").join("");
+      res.status(200).json(filePath);
+      console.log("existed");
     } else {
       const csvString = await subscribersHelper.parseJSONToCSVStr(
         allSubscribers
       );
       fs.writeFile(filePath, csvString, (err, data) => {
-        res.download(filePath);
+        filePath = filePath.split(".").join("");
+
+        res.status(200).json(filePath);
       });
     }
   } catch (error) {
+    console.log("hii error ", error);
     return res.status(500).json({ message: "error" });
   }
 };
@@ -123,9 +133,38 @@ const getSingleSubscriber = async (req, res, next) => {
   }
 };
 
+/* 
+    - THIS FUNC TAKES THE FILE ID AND AND CALL CREATE FUNC
+*/
+const refreshSubscribers = async (req, res, nex) => {
+  try {
+    const fileId = req.params.fileId;
+    if (!fileId) {
+      return res.status(400).json({
+        message: "missing file id"
+      });
+    } else {
+      await subscribersHelper.deleteFileSubscribers(fileId);
+      const file = await filesHelper.getFileById(fileId);
+      if (!file) {
+        return res.status(400).json({
+          message: "missing file id"
+        });
+      } else {
+        // const { accessToken, fileName, filePath, user } = file;
+        await subscribersHelper.createSubscribers(file);
+        await res.status(200).json({ ok: true });
+      }
+    }
+  } catch (error) {
+    console.log("err in refresh file ", error);
+  }
+};
+
 module.exports = {
   exportSubscribersToCSV,
   exportSubscribersToJSON,
   getAllSubscribers,
-  getSingleSubscriber
+  getSingleSubscriber,
+  refreshSubscribers
 };

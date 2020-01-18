@@ -17,6 +17,7 @@ const router = express.Router();
 const generateUserId = async (req, res, next) => {
   try {
     req.userId = "5df8a5eda13a33484c1758e5";
+    console.log("here in generate user");
     next();
   } catch (error) {
     console.log("generate userId ", error);
@@ -38,7 +39,6 @@ router.patch(
   validateAccessToken,
   fileController.updateFile
 );
-router.post("/refresh/:fileId", fileController.refreshFile);
 router.delete("/:fileId", fileController.deleteFileController);
 router.get("/:userId", generateUserId, fileController.getAllFiles);
 

@@ -62,7 +62,7 @@ const uploadFile = async (req, res, next) => {
       result: "file is created"
     });
   } catch (error) {
-    console.log("err in file upload", error);
+    console.log("err in file", error);
   }
 };
 /* 
@@ -107,21 +107,7 @@ const updateFile = async (req, res, next) => {
     });
   }
 };
-/* 
-    - THIS FUNC TAKES THE FILE ID AND AND CALL CREATE FUNC
-*/
-const refreshFile = async (req, res, nex) => {
-  try {
-    const fileId = req.params.fileId;
-    const file = filesHelper.getFileById(fileId);
-    const { accessToken, fileName, csvFilePath, userId } = file;
-    await filesHelper.createFile(accessToken, fileName, csvFilePath, userId);
-  } catch (error) {
-    return res.status(500).json({
-      err: error
-    });
-  }
-};
+
 const deleteFileController = async (req, res, nex) => {
   try {
     const fileId = req.params.fileId;
@@ -165,7 +151,6 @@ const getAllFiles = async (req, res, nex) => {
 module.exports = {
   uploadFile,
   updateFile,
-  refreshFile,
   deleteFileController,
   getAllFiles
 };

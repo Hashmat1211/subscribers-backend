@@ -7,13 +7,19 @@ const fs = require("fs");
 /* MULTER FUNCTIONS */
 
 const count = 4;
+console.log("count", count);
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log("fileUpload", "destination");
     cb(null, "upload/" + count + "/");
   },
   filename: (req, file, cb) => {
+    console.log("fileUpload", "filename");
+
     /* IF FILE ALREADY EXISTS, DELETE THE PREVIOUS FILE */
     try {
+      console.log("sad;lfkjasdl;fj;alsdfa;sldkfj lasdkjf ;ld");
+      console.log(file);
       console.log("file name ", file.originalname);
       const fullFilePath = `./upload/${count}/${count}-${file.originalname}`;
       /* IF FILE EXISTS, THEN DELETE THE FILE AND PASTE A NEW FILE THERE */
@@ -23,9 +29,9 @@ const storage = multer.diskStorage({
         // fs.mkdirSync(`./upload/${count}`, { recursive: true })
       }
       /* 
-                -   IF A FILE IN THE GIVEN DIR DOES NOT EXIST
-                ,THEN CREATE A NEW FILE THERE OTHERWISE LEAVE AS IT IS
-            */
+        IF A FILE IN THE GIVEN DIRECTORY DOES NOT EXIST
+        ,THEN CREATE A NEW FILE THERE OTHERWISE LEAVE AS IT IS
+      */
       fs.mkdirSync(`./upload/${count}`, { recursive: true });
       const fileName = `${count}-${file.originalname}`;
       req.filename = fileName;
@@ -44,7 +50,13 @@ const limits = {
 };
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "text/csv") {
+  console.log("file.mimetype", file.mimetype);
+  if (
+    file.mimetype === "text/csv" ||
+    file.mimetype === "application/vnd.ms-excel" ||
+    file.mimetype === "application/octet-stream" ||
+    file.mimetype === "application/csv"
+  ) {
     cb(null, true);
   } else {
     cb(

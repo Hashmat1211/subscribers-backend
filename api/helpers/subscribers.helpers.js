@@ -20,9 +20,11 @@ const createSubscribers = async file => {
         */
     // destruct file
     const { filePath, fileName, _id, accessToken } = file;
+    console.log("create subs file path ", filePath);
     /* convert csv into array object */
     // console.log(accessToken, "accessToken")
     const subscriberIds = await makeCSVintoArray(filePath);
+    console.log("subss ids ", subscriberIds);
     /* if length greater than 1000, then make segments for worker threads */
     if (subscriberIds.length > 1000) {
       console.log("if");
@@ -45,6 +47,7 @@ const createSubscribers = async file => {
 };
 const getSubscriberInfoFromManychat = async (accessToken, id) => {
   try {
+    console.log("accessToken ");
     accessToken = accessToken.trim();
     // console.log(`accessToken ${accessToken} id ${id}`);
     const apiUrl = `https://api.manychat.com/fb/subscriber/getInfo?subscriber_id=${id}`;
@@ -58,7 +61,9 @@ const getSubscriberInfoFromManychat = async (accessToken, id) => {
       json: true /*  */
     };
     const doc = await rp(options);
+    console.log("doc ... in api check ", doc);
     const result = await addCustomFieldsIntoMainDocument(doc.data);
+    console.log("result ... in api check ", result);
     return result;
   } catch (error) {
     console.log("error in apicheck ", error);
@@ -113,7 +118,6 @@ const makeCSVintoArray = async csvFilePath => {
 const saveSubscriberData = async (subscriberData, fileId) => {
   try {
     // console.log("subs data ", subscriberData)
-
     const newSubscriber = new Subscriber({
       ...subscriberData
     });
@@ -129,6 +133,8 @@ const saveSubscriberData = async (subscriberData, fileId) => {
 const parseJSONToCSVStr = async jsonData => {
   try {
     // console
+    console.log("json data ", jsonData);
+    console.log(Object.keys(jsonData));
     if (jsonData.length == 0) {
       return "";
     }
@@ -208,14 +214,18 @@ const deleteFileSubscribers = async fileId => {
 const getSubscribersByFileId = async fileId => {
   try {
     console.log("inside getsubscribers help func");
-    return await Subscriber.find({ file: fileId }).exec();
+    return await Subscriber.find({ file: fileId })
+      .lean()
+      .exec();
   } catch (error) {
     console.log(error);
   }
 };
 const getSubscribersBySubscriberId = async subscriberId => {
   try {
-    return await Subscriber.find({ _id: subscriberId }).exec();
+    return await Subscriber.find({ _id: subscriberId })
+      .lean()
+      .exec();
   } catch (error) {
     console.log(error);
   }
